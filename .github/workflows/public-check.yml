@@ -1,0 +1,10 @@
+name: public-safety
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./check-public.sh
+      - run: for f in $(git ls-files '*.sh'); do bash -n "$f"; done
+      - run: jq -e . settings/settings.template.json >/dev/null

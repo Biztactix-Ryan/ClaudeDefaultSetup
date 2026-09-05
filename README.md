@@ -73,3 +73,5 @@ projectman/                install.sh (pinned), skills/projectman-init-wizard, I
 ## Public repo
 
 This repo is public. Nothing in it may contain credentials, tokens, hostnames of private infrastructure, personal names or emails. Machine-specific values (ntfy topics, tokens) go in `~/.claude/notify.env`, which `.gitignore` excludes.
+
+The setup never configures identity: it does not set `git config user.name` / `user.email`, does not run `gh auth login`, and stores no tokens. The only git setting it writes is `core.hooksPath`. Run `./check-public.sh` before pushing; CI runs it on every push and fails on emails, home paths, private hostnames, IPs, credential-like strings, identity-configuring commands, or the account name outside the public repo URLs.

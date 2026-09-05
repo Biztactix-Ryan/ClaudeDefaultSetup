@@ -68,7 +68,7 @@ fi
 
 # Auth is interactive; never run it from a script.
 if gh auth status >/dev/null 2>&1; then
-  log "authenticated: $(gh auth status 2>&1 | grep -m1 -oE 'account [^ ]+' || echo yes)"
+  log "authenticated (gh auth status OK)"
 else
   warn "gh is not logged in. Run:  gh auth login  (choose GitHub.com, HTTPS or SSH, login with a browser)"
 fi
