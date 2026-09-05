@@ -1,0 +1,23 @@
+# Things the installers or the status line may leave behind if this repo is
+# ever cloned into (or symlinked from) a Claude config directory.
+*.bak
+*.tmp
+*.orig
+statusline-last.json
+statusline-debug
+notify.env
+settings.json
+settings.local.json
+.claude/
+.mcp.json
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Scratch
+/tmp/
+/test-output/
