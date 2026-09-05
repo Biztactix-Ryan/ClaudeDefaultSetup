@@ -28,8 +28,10 @@ module's `INSTALL.md` is a self-contained set of instructions; follow it exactly
 | 2 | Attribution fix | [attribution/INSTALL.md](attribution/INSTALL.md) | Empty commit/PR attribution plus a global `commit-msg` hook backstop |
 | 3 | Hooks | [hooks/INSTALL.md](hooks/INSTALL.md) | Bash guard, format-on-edit, long-turn notification, ProjectMan session context |
 | 4 | Slash commands | [commands/INSTALL.md](commands/INSTALL.md) | `/commit`, `/review`, `/handoff`, `/deploy-check` |
-| 5 | Settings template | [settings/INSTALL.md](settings/INSTALL.md) | Merges statusLine, attribution, env, permissions allow/deny and hook wiring into user `settings.json` |
-| 6 | ProjectMan | [projectman/INSTALL.md](projectman/INSTALL.md) | Pinned `pipx` install, `projectman setup-claude --global`, six-doc init wizard skill |
+| 5 | Skills | [skills/INSTALL.md](skills/INSTALL.md) | `/setup-project`: per-repo CLAUDE.md, deploy detection, project SessionStart hook, ProjectMan init |
+| 6 | Settings template | [settings/INSTALL.md](settings/INSTALL.md) | Merges statusLine, attribution, env, permissions allow/deny and hook wiring into user `settings.json` |
+| 7 | .NET SDKs | [dotnet/INSTALL.md](dotnet/INSTALL.md) | Current LTS + newest other supported SDK via the official dotnet-install script, no previews |
+| 8 | ProjectMan | [projectman/INSTALL.md](projectman/INSTALL.md) | Pinned `pipx` install, `projectman setup-claude --global`, six-doc init wizard skill |
 
 ## Rules for every module
 

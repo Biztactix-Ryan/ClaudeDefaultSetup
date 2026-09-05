@@ -8,6 +8,7 @@
     "pr": "",
     "sessionUrl": false
   },
+  "cleanupPeriodDays": 730,
   "env": {
     "DOTNET_CLI_TELEMETRY_OPTOUT": "1",
     "DOTNET_NOLOGO": "1",

@@ -8,6 +8,7 @@
 |-----|---------|
 | `statusLine` | Runs `~/.claude/statusline.sh` (see `../statusline/`) |
 | `attribution` | Empty commit/PR attribution, no session URL (see `../attribution/`) |
+| `cleanupPeriodDays` | 730: keep local session transcripts for two years instead of the 30-day default, so old sessions stay resumable |
 | `env` | `DOTNET_CLI_TELEMETRY_OPTOUT=1`, `DOTNET_NOLOGO=1`, `DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1`, `DOTNET_GENERATE_ASPNET_CERTIFICATE=false`, `NEXT_TELEMETRY_DISABLED=1`, `DO_NOT_TRACK=1` |
 | `permissions.allow` | The boring, read-only or build-only commands approved every time: `dotnet build/test/restore/format`, `git status/diff/log/show/branch/fetch`, `npm test`, `npm run test/lint/build`, `docker compose ps/logs/config`, `docker ps`, `jq`, read-only `projectman` subcommands |
 | `permissions.deny` | `rm -rf`, `sudo rm`, `git push --force` / `-f`, `infisical export` / `infisical secrets`, `cat .env`, and `Read`/`Edit` on `.env`, `.env.local`, `.env.development`, `.env.staging`, `.env.production` at any depth. `.env.example` stays readable on purpose |

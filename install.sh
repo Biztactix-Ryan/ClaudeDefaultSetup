@@ -3,7 +3,9 @@
 #
 #   ./install.sh                 everything
 #   ./install.sh --skip-projectman   everything except pipx/ProjectMan
+#   ./install.sh --skip-dotnet       everything except the .NET SDKs
 #   ./install.sh --only statusline,hooks
+#   modules: statusline attribution hooks commands skills settings dotnet projectman
 #
 # Touches only the user Claude config ($CLAUDE_CONFIG_DIR, default ~/.claude),
 # ~/.git-hooks, and git's global core.hooksPath. Never commits anything.
@@ -11,12 +13,13 @@ set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CFG="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
-ONLY=""; SKIP_PM=0
+ONLY=""; SKIP_PM=0; SKIP_DOTNET=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --only) ONLY="$2"; shift 2 ;;
     --only=*) ONLY="${1#--only=}"; shift ;;
     --skip-projectman) SKIP_PM=1; shift ;;
+    --skip-dotnet) SKIP_DOTNET=1; shift ;;
     -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     *) echo "unknown option: $1" >&2; exit 2 ;;
   esac
@@ -76,9 +79,22 @@ if want commands; then
   done
 fi
 
+# --- 4b. skills shipped by this repo ------------------------------------------
+if want skills; then
+  for d in "$HERE"/skills/*/; do
+    n=$(basename "$d")
+    install_file "$d/SKILL.md" "$CFG/skills/$n/SKILL.md"
+  done
+fi
+
 # --- 5. settings.json merge (statusLine, attribution, env, permissions, hooks)
 if want settings; then
   "$HERE/settings/merge.sh"
+fi
+
+# --- 5b. .NET SDKs (current LTS + newest other supported, no previews) --------
+if want dotnet && [ "$SKIP_DOTNET" -eq 0 ]; then
+  "$HERE/dotnet/install.sh" || warn ".NET step failed; fix the message above and re-run ./install.sh --only dotnet"
 fi
 
 # --- 6. ProjectMan -----------------------------------------------------------

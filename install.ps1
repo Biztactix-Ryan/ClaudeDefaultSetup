@@ -7,6 +7,7 @@
   line and hooks), jq, and PowerShell 7+. ProjectMan step needs pipx.
     .\install.ps1                      everything
     .\install.ps1 -SkipProjectMan
+    .\install.ps1 -SkipDotnet
     .\install.ps1 -Only statusline,hooks
   NOTE: written alongside the bash installer but not exercised on a Windows box
   yet. Run .\verify.sh from Git Bash afterwards and report anything odd.
@@ -14,7 +15,8 @@
 [CmdletBinding()]
 param(
   [string[]]$Only = @(),
-  [switch]$SkipProjectMan
+  [switch]$SkipProjectMan,
+  [switch]$SkipDotnet
 )
 $ErrorActionPreference = 'Stop'
 $Here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -66,6 +68,13 @@ if (Want 'commands') {
     ForEach-Object { Install-File $_.FullName "$Cfg\commands\$($_.Name)" }
 }
 
+# --- 4b. skills shipped by this repo ------------------------------------------
+if (Want 'skills') {
+  Get-ChildItem "$Here\skills" -Directory | ForEach-Object {
+    Install-File (Join-Path $_.FullName 'SKILL.md') "$Cfg\skills\$($_.Name)\SKILL.md"
+  }
+}
+
 # --- 5. settings merge -------------------------------------------------------
 function Merge-Into([hashtable]$cur, [hashtable]$tpl) {
   foreach ($k in $tpl.Keys) {
@@ -105,6 +114,31 @@ if (Want 'settings') {
     $cur | ConvertTo-Json -Depth 20 | Set-Content -Path $target -Encoding utf8NoBOM
     Log "wrote $target"
   } else { Log "settings.json already up to date" }
+}
+
+# --- 5b. .NET SDKs: current LTS + newest other supported channel, no previews --
+if ((Want 'dotnet') -and -not $SkipDotnet) {
+  try {
+    $idx = Invoke-RestMethod 'https://builds.dotnet.microsoft.com/dotnet/release-metadata/releases-index.json' -TimeoutSec 30
+    $supported = @($idx.'releases-index' | Where-Object { $_.'support-phase' -in 'active', 'maintenance' } |
+      Sort-Object { [version]$_.'channel-version' } -Descending)
+    $lts   = ($supported | Where-Object { $_.'release-type' -eq 'lts' } | Select-Object -First 1)
+    $other = ($supported | Where-Object { $_.'channel-version' -ne $lts.'channel-version' } | Select-Object -First 1)
+    $channels = @($lts, $other) | Where-Object { $_ }
+    if ($env:DOTNET_CHANNELS) { $channels = $env:DOTNET_CHANNELS -split ' ' | ForEach-Object { @{ 'channel-version' = $_; 'latest-sdk' = '' } } }
+    Log "dotnet channels: $(($channels | ForEach-Object { $_.'channel-version' }) -join ', ')"
+    $have = @()
+    if (Get-Command dotnet -ErrorAction SilentlyContinue) { $have = (dotnet --list-sdks) | ForEach-Object { ($_ -split ' ')[0] } }
+    $installer = Join-Path $env:TEMP 'dotnet-install.ps1'
+    Invoke-WebRequest 'https://dot.net/v1/dotnet-install.ps1' -OutFile $installer -TimeoutSec 60
+    foreach ($c in $channels) {
+      if ($c.'latest-sdk' -and $have -contains $c.'latest-sdk') { Log "SDK $($c.'latest-sdk') already installed"; continue }
+      Log "installing SDK channel $($c.'channel-version')"
+      # Default install dir is %LOCALAPPDATA%\Microsoft\dotnet; -Channel installs the latest released SDK, never a preview.
+      & $installer -Channel $c.'channel-version' -NoPath:$false
+    }
+    if (Get-Command dotnet -ErrorAction SilentlyContinue) { dotnet --list-sdks | ForEach-Object { Log "  $_" } }
+  } catch { Warn ".NET step failed: $($_.Exception.Message). Re-run with .\install.ps1 -Only dotnet" }
 }
 
 # --- 6. ProjectMan -----------------------------------------------------------

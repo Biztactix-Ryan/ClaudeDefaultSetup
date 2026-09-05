@@ -2,11 +2,24 @@
 # SessionStart: if the working directory is a ProjectMan project (.project/),
 # print a compact status summary so every session opens with context.
 # stdout from a SessionStart hook is added to Claude's context.
+#
+# The same script is used globally (~/.claude/hooks/session-start.sh) and as a
+# project-local copy (.claude/hooks/pm-context.sh, written by /setup-project so
+# teammates without the global setup still get context). When both are wired,
+# a per-session marker makes the second invocation a no-op.
 input=$(cat)
 cwd=$(printf '%s' "$input" | jq -r '.cwd // ""' 2>/dev/null)
+sid=$(printf '%s' "$input" | jq -r '.session_id // "nosession"' 2>/dev/null)
 [ -z "$cwd" ] && cwd="$PWD"
 proj="$cwd/.project"
 [ -f "$proj/config.yaml" ] || exit 0
+
+run="${XDG_RUNTIME_DIR:-/tmp}/claude-notify-${USER:-u}"; mkdir -p "$run" 2>/dev/null
+marker="$run/pm-context-$sid"
+if [ -f "$marker" ] && [ $(( $(date +%s) - $(stat -c %Y "$marker" 2>/dev/null || stat -f %m "$marker" 2>/dev/null || echo 0) )) -lt 30 ]; then
+  exit 0   # already printed for this session moments ago
+fi
+touch "$marker" 2>/dev/null
 
 # Prefer the pipx venv python (has PyYAML); fall back to any python3 with yaml.
 py=""

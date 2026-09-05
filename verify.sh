@@ -12,7 +12,14 @@ echo "Tools"
 for t in bash jq git awk; do command -v "$t" >/dev/null 2>&1 && ok "$t  $(ver "$t" --version)" || bad "$t missing (required)"; done
 command -v pipx       >/dev/null 2>&1 && ok "pipx  $(ver pipx --version)"           || bad "pipx missing (needed for ProjectMan)"
 command -v projectman >/dev/null 2>&1 && ok "projectman  $(pipx list --short 2>/dev/null | grep -i '^projectman' || echo installed)" || bad "projectman missing: run projectman/install.sh"
-command -v dotnet     >/dev/null 2>&1 && ok "dotnet  $(ver dotnet --version)"       || warn "dotnet missing (format hook skips .cs files)"
+if command -v dotnet >/dev/null 2>&1; then
+  sdks=$(dotnet --list-sdks 2>/dev/null | awk '{print $1}' | tr '\n' ' ')
+  ok "dotnet SDKs: ${sdks:-none}"
+  stable=$(printf '%s' "$sdks" | tr ' ' '\n' | grep -Evc -- '-(preview|rc|alpha|beta)' || true)
+  [ "${stable:-0}" -ge 1 ] || bad "no released (non-preview) .NET SDK installed (run dotnet/install.sh)"
+else
+  bad "dotnet missing (run dotnet/install.sh)"
+fi
 command -v gh         >/dev/null 2>&1 && ok "gh  $(ver gh --version)"               || warn "gh missing (/review on PRs and /deploy-check PR lookups need it)"
 command -v claude     >/dev/null 2>&1 && ok "claude  $(ver claude --version)"       || warn "claude CLI not on PATH (MCP registration needs it)"
 
@@ -56,6 +63,12 @@ echo "Commands and skills"
 for c in commit review handoff deploy-check; do [ -f "$CFG/commands/$c.md" ] && ok "/$c" || bad "commands/$c.md missing"; done
 for s in pm pm-status pm-plan pm-do pm-orchestrate pm-autoscope pm-cleanup projectman-init-wizard; do
   [ -f "$CFG/skills/$s/SKILL.md" ] && ok "skill $s" || bad "skill $s missing (projectman setup-claude --global / projectman/install.sh)"
+done
+for d in "$HERE"/skills/*/; do
+  s=$(basename "$d")
+  if [ -f "$CFG/skills/$s/SKILL.md" ]; then
+    cmp -s "$d/SKILL.md" "$CFG/skills/$s/SKILL.md" && ok "skill $s" || warn "skill $s differs from repo copy (re-run install.sh)"
+  else bad "skill $s missing (install.sh --only skills)"; fi
 done
 [ -f "$CFG/agents/pm.md" ] && ok "agent pm" || warn "agents/pm.md missing"
 if command -v claude >/dev/null 2>&1; then
