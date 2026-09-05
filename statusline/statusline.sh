@@ -100,30 +100,52 @@ parts+=("$(awk -v c="$COST" -v g="$GRN" -v y="$YEL" -v r="$RED" -v d="$DIM" -v z
     printf "%s$%s%.2f%s", d, col, c, z
 }')")
 # --- 6. weekly quota (Pro/Max subscribers only) ------------------------------
+# 7d ███│█░░░░░░ 40%·2h +0.8d   bar = usage in 10% cells, │ = where even burn over
+# the 7-day window would be right now, fill past │ is red/yellow (over pace),
+# +0.8d = usage is 0.8 days ahead of even pace (negative = under). ·2h = time
+# to the weekly reset, shown when under 48h away.
 if [ "${WEEK_PCT%%.*}" -ge 0 ] 2>/dev/null; then
   W=${WEEK_PCT%%.*}
   if   [ "$W" -ge 85 ]; then c=$RED
   elif [ "$W" -ge 60 ]; then c=$YEL
   else                       c=$GRN; fi
-  wk="${DIM}7d${R} ${c}${B}${W}%${R}"
+  left=-1
   if [ "${WEEK_RESET%%.*}" -gt 0 ] 2>/dev/null; then
     now=$(date +%s); left=$(( ${WEEK_RESET%%.*} - now ))
-    # pace: where usage would sit if the week were burned evenly. The window is
-    # the 7 days ending at resets_at, so expected% = elapsed/7d * 100. Shows the
-    # signed gap, e.g. +8 = 8 points ahead of even pace (over budget), -5 = under.
-    if [ "$left" -gt 0 ] && [ "$left" -le 604800 ]; then
-      wk+="$(awk -v used="$WEEK_PCT" -v left="$left" -v g="$GRN" -v y="$YEL" -v r="$RED" -v z="$R" 'BEGIN{
-          expected = (604800 - left) / 604800 * 100
-          d = used - expected
-          col = (d > 10 ? r : (d > 0 ? y : g))
-          printf " %s%+d%s", col, (d < 0 ? -int(-d + 0.5) : int(d + 0.5)), z
-      }')"
-    fi
-    # append reset countdown when it is under 48h away
-    if [ "$left" -gt 0 ] && [ "$left" -lt 172800 ]; then
-      if [ "$left" -ge 3600 ]; then wk+="${DIM}·${R}$((left/3600))h"
-      else                          wk+="${DIM}·${R}$((left/60))m"; fi
-    fi
+  fi
+  wk="${DIM}7d${R} "
+  wk+="$(awk -v used="$WEEK_PCT" -v left="$left" -v g="$GRN" -v y="$YEL" -v r="$RED" -v d="$DIM" -v b="$B" -v z="$R" 'BEGIN{
+      have_pace = (left >= 0 && left <= 604800)
+      expected = have_pace ? (604800 - left) / 604800 * 100 : -1
+      filled = int(used / 10 + 0.5); if (filled > 10) filled = 10
+      pos = have_pace ? int(expected / 10 + 0.5) : -1        # marker after this many cells
+      gap = used - expected
+      over_col = (gap > 10 ? r : y)
+      bar = ""
+      for (i = 1; i <= 10; i++) {
+        if (i <= filled) {
+          col = (have_pace && i > pos) ? over_col : g
+          bar = bar col "\342\226\210" z              # full block
+        } else {
+          bar = bar d "\342\226\221" z                # light shade
+        }
+        if (have_pace && i == pos) bar = bar b "\342\224\202" z   # marker after cell pos
+      }
+      if (have_pace && pos == 0) bar = b "\342\224\202" z bar
+      printf "%s", bar
+  }')"
+  wk+=" ${c}${B}${W}%${R}"
+  if [ "$left" -gt 0 ] && [ "$left" -lt 172800 ]; then
+    if [ "$left" -ge 3600 ]; then wk+="${DIM}·${R}$((left/3600))h"
+    else                          wk+="${DIM}·${R}$((left/60))m"; fi
+  fi
+  if [ "$left" -ge 0 ] && [ "$left" -le 604800 ]; then
+    # days ahead (+) or behind (-) of even pace; ~0 counts as on pace (green)
+    wk+="$(awk -v used="$WEEK_PCT" -v left="$left" -v g="$GRN" -v y="$YEL" -v r="$RED" -v z="$R" 'BEGIN{
+        days = (used - (604800 - left) / 604800 * 100) / 100 * 7
+        col = (days > 0.7 ? r : (days > 0.05 ? y : g))
+        printf " %s%+.1fd%s", col, days, z
+    }')"
   fi
   parts+=("$wk")
 fi
