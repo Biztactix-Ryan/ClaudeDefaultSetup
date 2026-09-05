@@ -13,6 +13,7 @@ From this directory of the repo:
 It does, in order:
 1. `pipx install --force "projectman[all] @ git+https://github.com/Biztactix-Ryan/ProjectMan.git@<pinned ref>"`
    The pin lives at the top of `install.sh` (`PROJECTMAN_REF`). Do not change it during setup.
+   `constraints.txt` is passed to pip as `--constraint` to pin transitive dependencies ProjectMan leaves open (currently `mcp<2`, because mcp 2.x renamed FastMCP and breaks `projectman serve`). The script then sends an MCP `initialize` handshake to `projectman serve` and stops if it does not answer.
 2. `projectman setup-claude --global` which writes `~/.claude/agents/pm.md` and `~/.claude/skills/pm*/SKILL.md`, and registers the `projectman` MCP server at user scope via `claude mcp add`.
 3. Copies `skills/projectman-init-wizard/SKILL.md` to `~/.claude/skills/projectman-init-wizard/` so `/pm init` and the six-doc context wizard (VISION, ARCHITECTURE, PROJECT, INFRASTRUCTURE, SECURITY, DECISIONS) are available in every repo.
 
@@ -34,6 +35,6 @@ Expected: projectman on PATH, `projectman` listed as a user-scope MCP server, an
 
 Tell me the installed ProjectMan version and pinned ref, whether the MCP server registered, and the list of skills written. Remind me to restart Claude Code.
 
-## Bumping the pin
+## Bumping the pin or the constraints
 
 Edit `PROJECTMAN_REF` in `install.sh` to the new commit SHA (or a tag once ProjectMan has them), commit, and re-run `./install.sh` on each machine. The `--force` flag makes re-running an upgrade.

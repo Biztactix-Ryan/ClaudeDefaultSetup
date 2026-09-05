@@ -1,0 +1,7 @@
+# pip constraints applied to the ProjectMan install (pipx --pip-args=--constraint).
+# The commit pin in install.sh fixes ProjectMan itself; this file fixes the
+# transitive dependencies that ProjectMan leaves open-ended.
+#
+# mcp 2.x renamed FastMCP -> MCPServer and breaks `projectman serve`
+# (ModuleNotFoundError: mcp.server.fastmcp). Lift when ProjectMan migrates.
+mcp<2

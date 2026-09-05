@@ -74,6 +74,10 @@ done
 if command -v claude >/dev/null 2>&1; then
   claude mcp list 2>/dev/null | grep -qi projectman && ok "MCP server projectman registered" || warn "projectman MCP server not registered (claude mcp add --scope user projectman -- projectman serve)"
 fi
+if command -v projectman >/dev/null 2>&1; then
+  hs=$(printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"verify","version":"0"}}}' | timeout 30 projectman serve 2>&1 | head -c 400 || true)
+  case "$hs" in *'"result"'*) ok "projectman serve answers MCP initialize" ;; *) bad "projectman serve failed MCP handshake: $(printf '%s' "$hs" | head -1)" ;; esac
+fi
 
 echo "Git attribution"
 hp=$(git config --global core.hooksPath 2>/dev/null)

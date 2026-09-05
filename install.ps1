@@ -151,8 +151,12 @@ if ((Want 'projectman') -and -not $SkipProjectMan) {
       (Select-String -Path "$Here\projectman\install.sh" -Pattern 'PROJECTMAN_REF="\$\{PROJECTMAN_REF:-([0-9a-f]+)\}"').Matches[0].Groups[1].Value
     }
     $spec = "projectman[all] @ git+https://github.com/Biztactix-Ryan/ProjectMan.git@$ref"
-    Log "installing $spec"
-    pipx install --force $spec
+    $constraints = Join-Path $Here 'projectman\constraints.txt'
+    Log "installing $spec (pip constraints: $constraints)"
+    pipx install --force --pip-args="--constraint $constraints" $spec
+    $hs = '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"setup","version":"0"}}}' | projectman serve 2>&1 | Out-String
+    if ($hs -notmatch '"result"') { throw "projectman serve failed the MCP handshake: $hs" }
+    Log "MCP server answers initialize OK"
     Log "running projectman setup-claude --global"
     projectman setup-claude --global
     Install-File "$Here\projectman\skills\projectman-init-wizard\SKILL.md" "$Cfg\skills\projectman-init-wizard\SKILL.md"

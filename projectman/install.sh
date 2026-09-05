@@ -29,12 +29,25 @@ MSG
   exit 1
 fi
 
+CONSTRAINTS="${HERE}/constraints.txt"
 log "installing ${SPEC}"
+log "with pip constraints from ${CONSTRAINTS}: $(grep -v '^#' "${CONSTRAINTS}" | grep -v '^$' | tr '\n' ' ')"
 # --force makes this an upgrade/reinstall when projectman is already present.
-pipx install --force "${SPEC}"
+# --constraint pins transitive deps ProjectMan leaves open (see constraints.txt).
+pipx install --force --pip-args="--constraint ${CONSTRAINTS}" "${SPEC}"
 
 command -v projectman >/dev/null 2>&1 || die "projectman not on PATH after install. Run 'pipx ensurepath' and open a new shell."
 log "installed: $(pipx list --short 2>/dev/null | grep -i '^projectman' || echo projectman)"
+
+# Smoke-test the MCP server with an initialize handshake; "registered" is not "works".
+hs=$(printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"setup","version":"0"}}}' \
+     | timeout 30 projectman serve 2>&1 | head -c 2000 || true)
+case "$hs" in
+  *'"result"'*) log "MCP server answers initialize OK" ;;
+  *) die "projectman serve failed the MCP handshake:
+${hs}
+Check projectman/constraints.txt (a transitive dependency probably moved)." ;;
+esac
 
 # --- 2. setup-claude ---------------------------------------------------------
 # --global writes agents/pm.md + skills/pm* into ~/.claude and registers the
