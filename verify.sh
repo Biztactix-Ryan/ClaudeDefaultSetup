@@ -20,7 +20,12 @@ if command -v dotnet >/dev/null 2>&1; then
 else
   bad "dotnet missing (run dotnet/install.sh)"
 fi
-command -v gh         >/dev/null 2>&1 && ok "gh  $(ver gh --version)"               || warn "gh missing (/review on PRs and /deploy-check PR lookups need it)"
+if command -v gh >/dev/null 2>&1; then
+  ok "gh  $(ver gh --version)"
+  gh auth status >/dev/null 2>&1 && ok "gh authenticated" || warn "gh not logged in (run: gh auth login)"
+else
+  bad "gh missing (run gh/install.sh)"
+fi
 command -v claude     >/dev/null 2>&1 && ok "claude  $(ver claude --version)"       || warn "claude CLI not on PATH (MCP registration needs it)"
 
 echo "Claude config ($CFG)"

@@ -42,6 +42,17 @@ if ($missing.Count) {
 }
 New-Item -ItemType Directory -Force -Path $Cfg | Out-Null
 
+# --- 0b. GitHub CLI ----------------------------------------------------------
+if (Want 'gh') {
+  if (Get-Command gh -ErrorAction SilentlyContinue) { Log "gh already installed: $((gh --version)[0])" }
+  elseif (Get-Command winget -ErrorAction SilentlyContinue) {
+    Log "installing gh via winget"
+    winget install --id GitHub.cli -e --accept-source-agreements --accept-package-agreements
+    Warn "open a new terminal for gh to be on PATH"
+  } else { Warn "gh missing and winget unavailable. Install from https://cli.github.com/" }
+  if ((Get-Command gh -ErrorAction SilentlyContinue) -and -not (gh auth status 2>$null)) { Warn "gh is not logged in. Run: gh auth login" }
+}
+
 # --- 1. status line ----------------------------------------------------------
 if (Want 'statusline') { Install-File "$Here\statusline\statusline.sh" "$Cfg\statusline.sh" }
 

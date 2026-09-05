@@ -5,7 +5,7 @@
 #   ./install.sh --skip-projectman   everything except pipx/ProjectMan
 #   ./install.sh --skip-dotnet       everything except the .NET SDKs
 #   ./install.sh --only statusline,hooks
-#   modules: statusline attribution hooks commands skills settings dotnet projectman
+#   modules: gh statusline attribution hooks commands skills settings dotnet projectman
 #
 # Touches only the user Claude config ($CLAUDE_CONFIG_DIR, default ~/.claude),
 # ~/.git-hooks, and git's global core.hooksPath. Never commits anything.
@@ -48,6 +48,11 @@ if [ ${#missing[@]} -gt 0 ]; then
   die "missing: ${missing[*]}. jq install: apt install jq | brew install jq | winget install jqlang.jq"
 fi
 mkdir -p "$CFG"
+
+# --- 0b. GitHub CLI (used by /review, /deploy-check, projectman git-status) ----
+if want gh; then
+  "$HERE/gh/install.sh" || warn "gh step failed; fix the message above and re-run ./install.sh --only gh"
+fi
 
 # --- 1. status line ----------------------------------------------------------
 if want statusline; then

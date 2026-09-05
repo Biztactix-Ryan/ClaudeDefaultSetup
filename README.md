@@ -35,6 +35,7 @@ Windows: `.\install.ps1` in PowerShell 7 (needs Git for Windows and jq), then `.
 | `~/.claude/commands/` | `/commit`, `/review`, `/handoff`, `/deploy-check` |
 | `~/.claude/skills/` | `setup-project` (per-repo onboarding), `pm*` from `projectman setup-claude --global`, `projectman-init-wizard` |
 | `~/.git-hooks/commit-msg` + `core.hooksPath` | strips any Claude attribution trailer as a backstop |
+| `gh` | GitHub CLI installed if missing; login stays manual (`gh auth login`) |
 | pipx | `projectman[all]` at the ref pinned in `projectman/install.sh` |
 | .NET | current LTS SDK + newest other supported SDK channel (no previews), chosen from Microsoft's releases index |
 
@@ -44,6 +45,7 @@ Windows: `.\install.ps1` in PowerShell 7 (needs Git for Windows and jq), then `.
 install.sh / install.ps1   idempotent installers (all modules, or --only)
 verify.sh                  post-install checks
 SETUP.md                   what Claude follows when pointed at the repo
+gh/                        install.sh (GitHub CLI) + INSTALL.md
 statusline/                statusline.sh + INSTALL.md
 attribution/               commit-msg hook + INSTALL.md
 hooks/                     four hook scripts + INSTALL.md
@@ -66,7 +68,7 @@ projectman/                install.sh (pinned), skills/projectman-init-wizard, I
 
 ## Requirements
 
-`bash`, `jq`, `git`, `awk`; `pipx` for ProjectMan; `dotnet` / `prettier` / `ruff` optional for the format hook. The status line's git segment uses a Nerd Font glyph; install a Nerd Font in the terminal if it renders as a box.
+`bash`, `jq`, `git`, `awk`; `gh` is installed by the setup itself; `pipx` for ProjectMan; `dotnet` / `prettier` / `ruff` optional for the format hook. The status line's git segment uses a Nerd Font glyph; install a Nerd Font in the terminal if it renders as a box.
 
 ## Public repo
 

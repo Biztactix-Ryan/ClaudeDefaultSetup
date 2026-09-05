@@ -24,6 +24,7 @@ module's `INSTALL.md` is a self-contained set of instructions; follow it exactly
 
 | # | Module | Instructions | What it does |
 |---|--------|--------------|--------------|
+| 0 | GitHub CLI | [gh/INSTALL.md](gh/INSTALL.md) | Installs `gh` if missing (brew / apt repo / dnf / pacman / apk / release tarball); reminds you to `gh auth login` |
 | 1 | Status line | [statusline/INSTALL.md](statusline/INSTALL.md) | Installs `statusline.sh` |
 | 2 | Attribution fix | [attribution/INSTALL.md](attribution/INSTALL.md) | Empty commit/PR attribution plus a global `commit-msg` hook backstop |
 | 3 | Hooks | [hooks/INSTALL.md](hooks/INSTALL.md) | Bash guard, format-on-edit, long-turn notification, ProjectMan session context |
