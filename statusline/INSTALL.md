@@ -37,7 +37,7 @@ Run the script with a fake payload and show me the output:
 printf '%s' '{"model":{"display_name":"Opus 4.8 (1M context)"},"effort":{"level":"high"},"workspace":{"project_dir":"'"$PWD"'","current_dir":"'"$PWD"'"},"context_window":{"used_percentage":42.3,"total_input_tokens":80000,"total_output_tokens":5000,"context_window_size":200000},"cost":{"total_cost_usd":1.2345},"rate_limits":{"seven_day":{"used_percentage":63,"resets_at":'"$(( $(date +%s) + 7200 ))"'}}}' | ~/.claude/statusline.sh
 ```
 
-Expected: one line showing `Opus 4.8·high │ <project> │ <branch> │ ctx 85.0k/200k 42% │ $1.23 │ 7d 63%·1h` with colours. Also run it with an empty object (`echo '{}' | ~/.claude/statusline.sh`) and confirm it prints `claude │ $0.00` with no errors and no literal `null`.
+Expected: one line showing `Opus 4.8·high │ <project> │ <branch> │ ctx 85.0k/200k 42% │ $1.23 │ 7d 63% -34·1h` with colours. The signed number after the weekly percentage is the pace gap: usage minus what even burn over the 7-day window would be at this moment (`+` means ahead of pace, i.e. over budget, `-` means under). With 2 hours left the even-pace expectation is about 97%, hence -34; on day 2 at 40% used it would read `+11`. Red above +10, yellow when positive, green when at or under pace. Also run it with an empty object (`echo '{}' | ~/.claude/statusline.sh`) and confirm it prints `claude │ $0.00` with no errors and no literal `null`.
 
 Then run `jq . ~/.claude/settings.json` to confirm the file is valid JSON and the `statusLine` key is present.
 

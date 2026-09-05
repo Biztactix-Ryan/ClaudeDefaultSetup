@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Claude Code status line
-# mode | project | git branch | context | session cost | weekly quota
+# mode | project | git branch | context | session cost | weekly quota + pace
 #
 # Reads the session JSON on stdin (see https://code.claude.com/docs/en/statusline)
 # and prints a single coloured line. Every segment degrades gracefully when its
@@ -106,9 +106,20 @@ if [ "${WEEK_PCT%%.*}" -ge 0 ] 2>/dev/null; then
   elif [ "$W" -ge 60 ]; then c=$YEL
   else                       c=$GRN; fi
   wk="${DIM}7d${R} ${c}${B}${W}%${R}"
-  # append reset countdown when it is under 48h away
   if [ "${WEEK_RESET%%.*}" -gt 0 ] 2>/dev/null; then
     now=$(date +%s); left=$(( ${WEEK_RESET%%.*} - now ))
+    # pace: where usage would sit if the week were burned evenly. The window is
+    # the 7 days ending at resets_at, so expected% = elapsed/7d * 100. Shows the
+    # signed gap, e.g. +8 = 8 points ahead of even pace (over budget), -5 = under.
+    if [ "$left" -gt 0 ] && [ "$left" -le 604800 ]; then
+      wk+="$(awk -v used="$WEEK_PCT" -v left="$left" -v g="$GRN" -v y="$YEL" -v r="$RED" -v z="$R" 'BEGIN{
+          expected = (604800 - left) / 604800 * 100
+          d = used - expected
+          col = (d > 10 ? r : (d > 0 ? y : g))
+          printf " %s%+d%s", col, (d < 0 ? -int(-d + 0.5) : int(d + 0.5)), z
+      }')"
+    fi
+    # append reset countdown when it is under 48h away
     if [ "$left" -gt 0 ] && [ "$left" -lt 172800 ]; then
       if [ "$left" -ge 3600 ]; then wk+="${DIM}·${R}$((left/3600))h"
       else                          wk+="${DIM}·${R}$((left/60))m"; fi

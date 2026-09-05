@@ -29,7 +29,7 @@ Windows: `.\install.ps1` in PowerShell 7 (needs Git for Windows and jq), then `.
 
 | Where | What |
 |-------|------|
-| `~/.claude/statusline.sh` | model · effort │ project │ git branch │ context │ session cost │ weekly quota |
+| `~/.claude/statusline.sh` | model · effort │ project │ git branch │ context │ session cost │ weekly quota with pace gap (+/- vs even daily burn) and reset countdown in the last 48h |
 | `~/.claude/settings.json` | merged, never replaced: `statusLine`, `attribution` off, 2-year session retention (`cleanupPeriodDays`), telemetry-off `env`, permissions allow/deny lists, hook wiring |
 | `~/.claude/hooks/` | `bash-guard.sh` (deny force push, `rm -rf /`, DROP TABLE, secret dumps), `format-on-edit.sh` (dotnet format / prettier / ruff), `notify.sh` (ntfy or desktop after long turns), `session-start.sh` (ProjectMan summary) |
 | `~/.claude/commands/` | `/commit`, `/review`, `/handoff`, `/deploy-check` |
